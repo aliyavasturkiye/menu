@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Menü Sistemi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Admin Giriş Butonu */
+        .admin-login-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #f5576c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .admin-login-btn:hover {
+            background: #e04656;
+            transform: scale(1.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 15px 30px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #f5576c;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Customer View */
+        .customer-view {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* Admin Panel */
+        .admin-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .admin-section h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-danger {
+            background: #f5576c;
+            color: white;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        /* Product List */
+        .product-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .product-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #eee;
+        }
+
+        .product-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f0f0f0;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Menu Display */
+        .menu-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .menu-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .category-section {
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+
+        .category-title {
+            font-size: 24px;
+            color: #667eea;
+            margin: 30px 0 20px 0;
+            font-weight: bold;
+        }
+
+        .menu-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .menu-card {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .menu-card-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #e0e0e0;
+        }
+
+        .menu-card-info {
+            flex: 1;
+        }
+
+        .menu-card-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .menu-card-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .menu-card-price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        .menu-footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+            font-size: 14px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        /* QR Code Section */
+        .qr-section {
+            text-align: center;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 15px;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .url-display {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .empty-menu {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-menu h2 {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Müşteri Görünümü (Varsayılan) -->
+        <div id="customer-view" class="customer-view">
+            <div class="menu-header">
+                <h1 id="restaurant-name-customer">🍴 Restoran Adı</h1>
+                <p>Hoş geldiniz! Lezzetli menümüzü keşfedin</p>
+            </div>
+            <div id="menu-display-customer"></div>
+            <div class="menu-footer">
+                <p>Afiyet olsun! 🌟</p>
+                <p style="margin-top: 10px; font-size: 12px;">Fiyatlara KDV dahildir</p>
+            </div>
+        </div>
+
+        <!-- Admin Giriş Butonu -->
+        <button class="admin-login-btn" id="admin-login-btn" onclick="showAdminPanel()">⚙️</button>
+
+        <!-- Admin Panel (Gizli) -->
+        <div id="admin-panel" style="display:none;">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('menu')">📱 Müşteri Menüsü</button>
+                <button class="tab-btn" onclick="switchTab('admin')">⚙️ Yönetim Paneli</button>
+                <button class="tab-btn" onclick="switchTab('qr')">📲 QR Kod</button>
+                <button class="tab-btn" onclick="hideAdminPanel()" style="margin-left: auto; background: #f5576c; color: white;">✕ Kapat</button>
+            </div>
+
+            <!-- Müşteri Menüsü Preview -->
+            <div id="menu-tab" class="tab-content active">
+                <div class="menu-header">
+                    <h1 id="restaurant-name">🍴 Restoran Adı</h1>
+                    <p>Hoş geldiniz! Lezzetli menümüzü keşfedin</p>
+                </div>
+                <div id="menu-display"></div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="admin-tab" class="tab-content">
+                <div class="admin-section">
+                    <h3>🏪 Restoran Bilgileri</h3>
+                    <div class="form-group">
+                        <label>Restoran Adı:</label>
+                        <input type="text" id="resto-name" placeholder="Örn: Lezzet Durağı">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveRestaurantName()">Kaydet</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>➕ Yeni Ürün Ekle</h3>
+                    <div class="form-group">
+                        <label>Kategori:</label>
+                        <select id="new-category">
+                            <option value="Başlangıçlar">Başlangıçlar</option>
+                            <option value="Ana Yemekler">Ana Yemekler</option>
+                            <option value="İçecekler">İçecekler</option>
+                            <option value="Tatlılar">Tatlılar</option>
+                            <option value="Özel">Özel (Yeni Kategori)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-category-group" style="display:none;">
+                        <label>Yeni Kategori Adı:</label>
+                        <input type="text" id="custom-category" placeholder="Örn: Salatalar">
+                    </div>
+                    <div class="form-group">
+                        <label>Ürün Adı:</label>
+                        <input type="text" id="new-name" placeholder="Örn: İskender Kebap">
+                    </div>
+                    <div class="form-group">
+                        <label>Açıklama:</label>
+                        <textarea id="new-desc" placeholder="Örn: Tereyağlı pide üzeri, yoğurtlu"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Fiyat (₺):</label>
+                        <input type="number" id="new-price" placeholder="Örn: 280">
+                    </div>
+                    <div class="form-group">
+                        <label>Ürün Resmi:</label>
+                        <input type="file" id="new-image" accept="image/*" onchange="previewImage(this, 'image-preview-new')">
+                        <img id="image-preview-new" class="image-preview" style="display:none;">
+                    </div>
+                    <button class="btn btn-success" onclick="addProduct()">Ürün Ekle</button>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📋 Mevcut Ürünler</h3>
+                    <div id="product-list" class="product-list"></div>
+                </div>
+            </div>
+
+            <!-- QR Kod -->
+            <div id="qr-tab" class="tab-content">
+                <div class="qr-section">
+                    <h2>📲 Menü QR Kodu</h2>
+                    <p style="margin: 20px 0;">Bu QR kodu müşterilerinize gösterin</p>
+                    <div id="qrcode"></div>
+                    <div class="url-display" id="menu-url"></div>
+                    <button class="btn btn-primary" onclick="downloadQR()">QR Kodu İndir</button>
+                    <p style="margin-top: 20px; color: #666; font-size: 14px;">
+                        💡 İpucu: QR kodu yazdırıp masalarınıza koyabilirsiniz
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let products = [];
+        let restaurantName = "Restoran Adı";
+        let isAdminMode = false;
+
+        // Sayfa yüklendiğinde
+        window.onload = function() {
+            loadData();
+            
+            // URL'de admin parametresi var mı kontrol et
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('admin') === 'true') {
+                showAdminPanel();
+            } else {
+                // Müşteri görünümü
+                showCustomerView();
+            }
+            
+            document.getElementById('new-category').addEventListener('change', function() {
+                document.getElementById('custom-category-group').style.display = 
+                    this.value === 'Özel' ? 'block' : 'none';
+            });
+        };
+
+        function showCustomerView() {
+            document.getElementById('customer-view').style.display = 'block';
+            document.getElementById('admin-panel').style.display = 'none';
+            document.getElementById('admin-login-btn').style.display = 'block';
+            isAdminMode = false;
+            updateCustomerMenu();
+        }
+
+        function showAdminPanel() {
+            document.getElementById('customer-view').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('admin-login-btn').style.display = 'none';
+            isAdminMode = true;
+            updateMenu();
+            updateProductList();
+            generateQR();
+        }
+
+        function hideAdminPanel() {
+            showCustomerView();
+            // URL'den admin parametresini kaldır
+            window.history.pushState({}, '', window.location.pathname);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tab + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function saveRestaurantName() {
+            const name = document.getElementById('resto-name').value.trim();
+            if (name) {
+                restaurantName = name;
+                saveData();
+                document.getElementById('restaurant-name').textContent = '🍴 ' + restaurantName;
+                document.getElementById('restaurant-name-customer').textContent = '🍴 ' + restaurantName;
+                alert('Restoran adı kaydedildi!');
+            }
+        }
+
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function addProduct() {
+            let category = document.getElementById('new-category').value;
+            if (category === 'Özel') {
+                category = document.getElementById('custom-category').value.trim();
+                if (!category) {
+                    alert('Lütfen kategori adı girin!');
+                    return;
+                }
+            }
+            
+            const name = document.getElementById('new-name').value.trim();
+            const desc = document.getElementById('new-desc').value.trim();
+            const price = document.getElementById('new-price').value.trim();
+            
+            if (!name || !price) {
+                alert('Lütfen ürün adı ve fiyat girin!');
+                return;
+            }
+
+            const imageInput = document.getElementById('new-image');
+            let imageData = '';
+            
+            if (imageInput.files && imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imageData = e.target.result;
+                    saveProduct();
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                saveProduct();
+            }
+
+            function saveProduct() {
+                const product = {
+                    id: Date.now(),
+                    category: category,
+                    name: name,
+                    desc: desc,
+                    price: price,
+                    image: imageData
+                };
+
+                products.push(product);
+                saveData();
+                updateMenu();
+                updateCustomerMenu();
+                updateProductList();
+
+                // Formu temizle
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-desc').value = '';
+                document.getElementById('new-price').value = '';
+                document.getElementById('new-image').value = '';
+                document.getElementById('image-preview-new').style.display = 'none';
+
+                alert('Ürün eklendi!');
+            }
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
+                products = products.filter(p => p.id !== id);
+                saveData();
+                updateMenu();
+                updateCustomerMenu();
+                updateProductList();
+            }
+        }
+
+        function renderMenu(containerId) {
+            const menuDisplay = document.getElementById(containerId);
+            menuDisplay.innerHTML = '';
+
+            if (products.length === 0) {
+                menuDisplay.innerHTML = `
+                    <div class="empty-menu">
+                        <h2>Henüz menü eklenmedi</h2>
+                        <p>Yönetim panelinden ürün ekleyebilirsiniz</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Kategorilere göre grupla
+            const categories = {};
+            products.forEach(product => {
+                if (!categories[product.category]) {
+                    categories[product.category] = [];
+                }
+                categories[product.category].push(product);
+            });
+
+            // Her kategori için görüntüle
+            for (const [category, items] of Object.entries(categories)) {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = category;
+                section.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'menu-grid';
+
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'menu-card';
+                    
+                    if (item.image) {
+                        const img = document.createElement('img');
+                        img.className = 'menu-card-image';
+                        img.src = item.image;
+                        card.appendChild(img);
+                    }
+
+                    const info = document.createElement('div');
+                    info.className = 'menu-card-info';
+                    info.innerHTML = `
+                        <div class="menu-card-name">${item.name}</div>
+                        <div class="menu-card-desc">${item.desc}</div>
+                        <div class="menu-card-price">${item.price}₺</div>
+                    `;
+                    card.appendChild(info);
+
+                    grid.appendChild(card);
+                });
+
+                section.appendChild(grid);
+                menuDisplay.appendChild(section);
+            }
+        }
+
+        function updateMenu() {
+            renderMenu('menu-display');
+        }
+
+        function updateCustomerMenu() {
+            renderMenu('menu-display-customer');
+        }
+
+        function updateProductList() {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            if (products.length === 0) {
+                productList.innerHTML = '<p style="text-align:center;color:#999;">Henüz ürün eklenmedi</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.className = 'product-item';
+                
+                if (product.image) {
+                    const img = document.createElement('img');
+                    img.className = 'product-image';
+                    img.src = product.image;
+                    item.appendChild(img);
+                }
+
+                const info = document.createElement('div');
+                info.className = 'product-info';
+                info.innerHTML = `
+                    <strong>${product.name}</strong><br>
+                    <small>${product.category}</small><br>
+                    ${product.desc}<br>
+                    <strong style="color:#f5576c;">${product.price}₺</strong>
+                `;
+                item.appendChild(info);
+
+                const actions = document.createElement('div');
+                actions.className = 'product-actions';
+                actions.innerHTML = `
+                    <button class="btn btn-danger" onclick="deleteProduct(${product.id})">Sil</button>
+                `;
+                item.appendChild(actions);
+
+                productList.appendChild(item);
+            });
+        }
+
+        function generateQR() {
+            const qrDiv = document.getElementById('qrcode');
+            qrDiv.innerHTML = '';
+            
+            // Müşteri menüsü için URL (admin parametresi YOK)
+            const currentURL = window.location.href.split('?')[0];
+            document.getElementById('menu-url').textContent = currentURL;
+
+            new QRCode(qrDiv, {
+                text: currentURL,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qrcode canvas');
+            if (canvas) {
+                const url = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'menu-qr-code.png';
+                link.href = url;
+                link.click();
+            }
+        }
+
+        function saveData() {
+            const data = {
+                restaurantName: restaurantName,
+                products: products
+            };
+            localStorage.setItem('menuData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('menuData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                restaurantName = data.restaurantName || restaurantName;
+                products = data.products || [];
+                
+                document.getElementById('resto-name').value = restaurantName;
+                document.getElementById('restaurant-name').textContent = '🍴 ' + restaurantName;
+                document.getElementById('restaurant-name-customer').textContent = '🍴 ' + restaurantName;
+            }
+        }
+    </script>
+</body>
+</html>
